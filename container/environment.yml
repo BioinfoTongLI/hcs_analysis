@@ -1,0 +1,21 @@
+name: base 
+channels:
+  - conda-forge
+  - defaults
+  - rapidsai
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - cucim
+  - cudatoolkit=11.7
+  - scikit-image
+  - pip
+  - pip:
+      - cellpose
+      - openpyxl
+      - pdbpp
+      - imagecodecs
+      - aicsimageio
+      - fire
+      - numba
