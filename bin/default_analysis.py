@@ -56,7 +56,7 @@ def process_one_well(img_path: str, name:str, model: models.CellposeModel, diame
 
     :return: A pandas DataFrame containing the predicted mask and the original image.
     :rtype: pd.DataFrame
-    """ 
+    """
     img = AICSImage(f"{img_path}/{name}")
     stem = name.split("_")[0]
     spacing = float(img.get_xarray_dask_stack().coords["X"][1])
@@ -64,8 +64,8 @@ def process_one_well(img_path: str, name:str, model: models.CellposeModel, diame
     # print(f"Processing {name} with diameter {diameter_in_px} px and spacing {spacing} um")
 
     stack = img.get_xarray_dask_stack().squeeze()
-    nuc_img = stack.sel(C=nuclei_channel_name)
-    mask, _, _, _ = model.eval(np.array(nuc_img),
+    nuc_img = np.max(stack.sel(C=nuclei_channel_name))
+    mask, _, _, _ = model.eval(nuc_img,
                                 channels=channels,
                                 diameter=diameter_in_px)
 
@@ -80,7 +80,7 @@ def process_one_well(img_path: str, name:str, model: models.CellposeModel, diame
             "eccentricity",
             "equivalent_diameter_area",
             "extent",
-            "feret_diameter_max", # this one may not been inplemented in cucim 
+            "feret_diameter_max", # this one may not been inplemented in cucim
             "intensity_max",
             "intensity_mean",
             "intensity_min",
@@ -94,9 +94,9 @@ def process_one_well(img_path: str, name:str, model: models.CellposeModel, diame
 
 
 def main(
-    root: str, 
-    plate_name: str, 
-    out_dir: str, 
+    root: str,
+    plate_name: str,
+    out_dir: str,
     diameter_in_um: float,
     channels: List[Tuple[int, int]] = [(0, 0)]
 ) -> None:
