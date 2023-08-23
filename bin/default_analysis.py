@@ -34,7 +34,7 @@ except ImportError:
 
 @dask.delayed
 def process_one_well(img_path: str, name:str, model: models.CellposeModel, diameter_in_um: float,
-                     out_dir: str, nuclei_channel_name: str = "PhenoVue Hoechst 33342",
+                     out_dir: str, nuclei_channel_name: str = "PhenoVue Hoechst 33342", nuc_only: bool = False,
                      channels: List[List[int]] = [[0, 0]]) -> pd.DataFrame:
     """
     Processes a single well image using a given model.
@@ -53,6 +53,8 @@ def process_one_well(img_path: str, name:str, model: models.CellposeModel, diame
     :type diameter_in_um: float
     :param channels: List of channel indices to use for prediction. Default is [[0, 0]].
     :type channels: List[List[int]]
+    :param nuc_only: Whether to use only the nuclei channel for prediction. Default is False.
+    :type nuc_only: bool
 
     :return: A pandas DataFrame containing the predicted mask and the original image.
     :rtype: pd.DataFrame
@@ -64,8 +66,12 @@ def process_one_well(img_path: str, name:str, model: models.CellposeModel, diame
     # print(f"Processing {name} with diameter {diameter_in_px} px and spacing {spacing} um")
 
     stack = img.get_xarray_dask_stack().squeeze()
-    nuc_img = np.max(stack.sel(C=nuclei_channel_name))
-    mask, _, _, _ = model.eval(nuc_img,
+    print(stack.shape)
+    if nuc_only:
+        img_for_seg = stack.sel(C=nuclei_channel_name).compute()
+    else:
+        img_for_seg = np.max(np.array(stack), axis=0)
+    mask, _, _, _ = model.eval(img_for_seg,
                                 channels=channels,
                                 diameter=diameter_in_px)
 
