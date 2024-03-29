@@ -4,6 +4,7 @@ import groovy.json.JsonSlurper
 import groovy.xml.XmlParser
 
 include { BaSiC_CellPose_3D } from './workflows/workflow_3D_BaSiC_CellPose'
+include { hcs_plate_analysis } from './workflows/workflow_2D_feature_extract'
 
 params.masters = [
     ['/nfs/team283_imaging/0HarmonyStitched/JM_TCA/jm52_20230728_TGlowBencharmking_63X_3days__2023-07-28T14_53_45-Measurement 1_max/jm52_20230728_TGlowBencharmking_63X_3days.companion.ome', 12],
@@ -12,44 +13,14 @@ params.masters = [
 ]
 
 params.zarrs = [
-    "/nfs/t217_imaging/JM_TCA/playground_Tong/zarrs/jm52_KITTY_20230929_10h__2023-09-30T11_44_13-Measurement 2.zarr",
+    [[:], "/nfs/t217_imaging/JM_TCA/playground_Tong/zarrs/jm52_KITTY_20230929_10h__2023-09-30T11_44_13-Measurement 2.zarr"],
     // "/lustre/scratch126/cellgen/team283/tl10/demo_datasets/minimal_HCS.zarr/",
     // "/lustre/scratch126/cellgen/team283/tl10/demo_datasets/minimal_WSI.zarr/",
-    "/nfs/t233_imaging/NT_FAK/playground_Tong/fk7_3xHpSci_22-01-24_24srID__2024-01-30T10_21_49-Measurement 25_no_hcs.zarr"
+    [[:], "/nfs/t233_imaging/NT_FAK/playground_Tong/fk7_3xHpSci_22-01-24_24srID__2024-01-30T10_21_49-Measurement 25_no_hcs.zarr"]
     // "/lustre/scratch126/cellgen/team283/tl10/demo_datasets//20200812-CardiomyocyteDifferentiation14-Cycle1.zarr"
     // "s3://idr/zarr/v0.4/idr0128E/9701.zarr"
 ]
 params.out_dir = null
-
-
-process hcs_plate_analysis {
-    debug true
-    cache true
-
-    label "gpu_normal"
-
-    container 'bioinfotongli/hcs_analysis:latest'
-    containerOptions "${workflow.containerEngine == 'singularity' ? '-B /lustre,/nfs --nv':'-v /lustre:/lustre -v /nfs:/nfs --gpus all'}"
-    publishDir params.out_dir, mode:"copy"
-
-    input:
-    tuple val(meta), path(root), val(companion), val(diameter_in_um)
-
-    output:
-    tuple val(meta), path("${meta['id']}/*_regionprops.csv"), emit: regionprops 
-    tuple val(meta), path("${meta['id']}/*_mask.ome.tif"), emit: masks 
-
-    script:
-    def args = task.ext.args ?: ''
-    """
-    default_analysis.py \
-        -root ${root} \
-        -plate_name ${companion} \
-        -out_dir ${meta['id']} \
-        -diameter_in_um ${diameter_in_um} \
-        ${args}
-    """
-}
 
 
 workflow tif_workflow {
