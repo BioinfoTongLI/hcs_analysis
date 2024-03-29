@@ -1,0 +1,53 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bioinfotongli_basicfitting"
+description: A wrapper of BaSiC for fitting illumination correction models to multi-dimensional images
+keywords:
+  - illumination correction
+  - imaging
+  - image analysis
+tools:
+  - "bioinfotongli":
+      description: ""
+      homepage: ""
+      documentation: ""
+      tool_dev_url: ""
+      doi: ""
+      licence: 
+
+input:
+  - zarr_root:
+      type: folder
+      description: ome-ngff zarr root folder
+      pattern: "*.zarr"
+
+  - C:
+      type: int 
+      description: channel index of the image stack
+      pattern: "0"
+
+  - P:
+      type: int 
+      description: position index of the image stack; HCS data only; -1 for WSI data
+      pattern: "0..4 or -1"
+
+   - T:
+      type: int 
+      description: time index of the image stack
+      pattern: "0"
+
+output:
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+  - basic_models:
+      type: tuple
+      description: "Position index & Basic models dir containing the fitted models"
+      pattern: "[0, BaSiC_model_C*_P0_T*]"
+
+authors:
+  - "@BioinfoTongLI"
+maintainers:
+  - "@BioinfoTongLI"

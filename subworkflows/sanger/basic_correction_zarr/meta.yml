@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "basic_correction_zarr"
+description: Correction illumination profile using BaSiCpy.
+keywords:
+  - illumination correction
+  - image processing
+  - image analysis
+  - background correction
+  - flatfield correction
+  - microscopy
+components:
+  - bioinfotongli/basicfitting
+  - bioinfotongli/basictransform
+input:
+  - ome_zarr:
+      type: file
+      description: |
+        The input channel containing the ome_zarr files
+        Structure: [ val(meta), path(ome_zarr) ]
+      pattern: "*.zarr"
+
+# TODO
+output:
+  - corrected_ome_zarr:
+      type: file
+      description: |
+        Channel containing corrected ome_zarr images 
+        Structure: [ val(meta), path(corrected_ome_zarr) ]
+      pattern: "*_corrected.zarr"
+  - versions:
+      type: file
+      description: |
+        File containing software versions
+        Structure: [ path(versions.yml) ]
+      pattern: "versions.yml"
+authors:
+  - "@BioinfoTongLI"
+maintainers:
+  - "@BioinfoTongLI"

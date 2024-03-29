@@ -1,0 +1,31 @@
+{
+  "name": "",
+  "homePage": "",
+  "repos": {
+    "git@github.com:BioinfoTongLI/modules.git": {
+      "modules": {
+        "sanger": {
+          "bioinfotongli/basicfitting": {
+            "branch": "develop",
+            "git_sha": "d2558e4ae4d40dfd8c82ce71e53d9ce45d271bba",
+            "installed_by": ["basic_correction_zarr"]
+          },
+          "bioinfotongli/basictransform": {
+            "branch": "develop",
+            "git_sha": "d2558e4ae4d40dfd8c82ce71e53d9ce45d271bba",
+            "installed_by": ["basic_correction_zarr"]
+          }
+        }
+      },
+      "subworkflows": {
+        "sanger": {
+          "basic_correction_zarr": {
+            "branch": "develop",
+            "git_sha": "601e60bc6fe91afb2042b2dbe6224b12674a1d0d",
+            "installed_by": ["subworkflows"]
+          }
+        }
+      }
+    }
+  }
+}
