@@ -35,7 +35,7 @@ process Generate_ome_zarr_stub {
 workflow BASIC_CORRECTION_ZARR {
 
     take:
-    zarrs // channel: [  zarr  ], which has to contain the OME-XML file in OME folder and at least the .zattrs file in the root
+    zarrs // channel: [ meta,  zarr  ], which has to contain the OME-XML file in OME folder and at least the .zattrs file in the root
 
     main:
     ch_versions = Channel.empty()

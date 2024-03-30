@@ -11,7 +11,15 @@ keywords:
 components:
   - bioinfotongli/basicfitting
   - bioinfotongli/basictransform
+
 input:
+  - meta:
+      type: map
+      description: |
+        The meta information of the input data
+        Structure: { val(meta) }
+      pattern: ""
+    
   - ome_zarr:
       type: file
       description: |
@@ -21,6 +29,13 @@ input:
 
 # TODO
 output:
+  - meta:
+      type: map
+      description: |
+        The meta information of the input data
+        Structure: { val(meta) }
+      pattern: ""
+
   - corrected_ome_zarr:
       type: file
       description: |

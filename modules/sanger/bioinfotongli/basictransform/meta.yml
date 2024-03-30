@@ -1,15 +1,13 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "bioinfotongli_basictransform"
-## TODO nf-core: Add a description of the module and list keywords
-description: write your description here
+description: Apply BaSiC models to correct illumination in multi-dimensional images
 keywords:
-  - sort
-  - example
-  - genomics
+  - illumination correction
+  - imaging
+  - image analysis
 tools:
   - "bioinfotongli":
-      ## TODO nf-core: Add a description and other details for the software below
       description: ""
       homepage: ""
       documentation: ""
@@ -17,39 +15,52 @@ tools:
       doi: ""
       licence: 
 
-## TODO nf-core: Add a description of all of the variables used as input
 input:
-  # Only when we have meta
   - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
-  
-  ## TODO nf-core: Delete / customise this example input
-  - bam:
-      type: file
-      description: Sorted BAM/CRAM/SAM file
-      pattern: "*.{bam,cram,sam}"
+      type: dict 
+      description: meta data of the zarr file
+      pattern: ""
 
-## TODO nf-core: Add a description of all of the variables used as output
+  - fov:
+      type: int 
+      description: Field of View of one well or one slide
+      pattern: "[0..9]+"
+
+  - zarr_root:
+      type: folder
+      description: ome-ngff zarr root folder
+      pattern: "*.zarr"
+
+  - field:
+      type: int 
+      description: position index of the image stack; HCS data only; -1 for WSI data
+      pattern: "0..4 or -1"
+
+  - models:
+      type: folder 
+      description: BaSiC models
+      pattern: ""
+
+   - new_zarr_root:
+      type: folder
+      description: ome-ngff zarr root folder where the transformed images will be saved 
+      pattern: "*.zarr"
+
 output:
-  #Only when we have meta
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', single_end:false ]`
+   - meta:
+      type: dict 
+      description: meta data of the zarr file
+      pattern: " "
   
+- expected_dir:
+      type: folder 
+      description: the FOV folder containing the transformed images
+      pattern: " "
+
   - versions:
       type: file
       description: File containing software versions
       pattern: "versions.yml"
-  ## TODO nf-core: Delete / customise this example output
-  - bam:
-      type: file
-      description: Sorted BAM/CRAM/SAM file
-      pattern: "*.{bam,cram,sam}"
 
 authors:
   - "@BioinfoTongLI"
