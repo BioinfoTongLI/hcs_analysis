@@ -1,0 +1,2 @@
+subworkflows/basic_correction_zarr:
+  - subworkflows/sanger/basic_correction_zarr/**

@@ -7,12 +7,12 @@
         "sanger": {
           "bioinfotongli/basicfitting": {
             "branch": "develop",
-            "git_sha": "4fb4ca3c1ff0289b2f9dbe91c15d795605c0f29f",
+            "git_sha": "c0903c506805fb9bda0f6590828c5fee6e6c2f58",
             "installed_by": ["basic_correction_zarr"]
           },
           "bioinfotongli/basictransform": {
             "branch": "develop",
-            "git_sha": "4fb4ca3c1ff0289b2f9dbe91c15d795605c0f29f",
+            "git_sha": "c0903c506805fb9bda0f6590828c5fee6e6c2f58",
             "installed_by": ["basic_correction_zarr"]
           }
         }
@@ -21,7 +21,7 @@
         "sanger": {
           "basic_correction_zarr": {
             "branch": "develop",
-            "git_sha": "9021824aef855a810a1a0437b3298f242fe12d36",
+            "git_sha": "c0903c506805fb9bda0f6590828c5fee6e6c2f58",
             "installed_by": ["subworkflows"]
           }
         }
