@@ -21,7 +21,8 @@ RUN cd /opt && \
 # Downgrade to 0.4.23
 RUN pip install --upgrade jax==0.4.23 "jax[cuda11_pip]==0.4.23" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
-RUN python -c "from cellpose import models, core; models.Cellpose(gpu=core.use_gpu(), model_type='cyto2')"
+RUN pip install git+https://github.com/jluethi/fractal-helper-tasks.git
+# RUN python -c "from cellpose import models, core; models.Cellpose(gpu=core.use_gpu(), model_type='cyto2')"
 
 # RUN chmod -R 777 /opt
 # Create user analysis
