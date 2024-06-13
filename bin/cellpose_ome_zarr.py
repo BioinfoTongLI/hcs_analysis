@@ -10,33 +10,36 @@ import fire
 from fractal_tasks_core.tasks.cellpose_segmentation import cellpose_segmentation
 from fractal_tasks_core.channels import ChannelInputModel
 import json
+from pathlib import Path
 
 
-def main(argsjson:str, overwrite:bool, output_config:str, stem:str, **args):
+VERSION="0.0.1"
+def main(argsjson:str, overwrite:bool, output_config:str,
+        target_ch_name="PhenoVue Hoechst 33342", **args):
     with open(argsjson) as f:
         data = json.load(f)
 
-    print(data) 
-    img_list = cellpose_segmentation(
+    cellpose_segmentation(
         zarr_url=data['zarr_url'],
         overwrite=overwrite,
         level=0,
-        channel=ChannelInputModel(label="PhenoVue Hoechst 33342"),
-        input_ROI_table ="image_ROI_table"
+        channel=ChannelInputModel(
+            wavelength_id=target_ch_name), # one can only either wavelength_id or label
+        input_ROI_table ="image_ROI_table",
+        model_type="cyto2",
+        anisotropy=2, # this has to be set to approxinately to the anisotropy of the image
+        **args
     )
-    print(img_list)
+    data.update({"label_image_folder": f"label_{target_ch_name}"})
+    data["waterfall"].append(f"{Path(__file__).name}:{VERSION}")
 
     with open(output_config, "w") as f:
-        json.dump(img_list, f)
-
-    for i, img in enumerate(img_list["image_list_updates"]):
-        with open(f"{stem}_{i}.json", "w") as f:
-            json.dump({"zarr_url":img["zarr_url"]}, f)
+        json.dump(data, f)
     
 
 if __name__ == "__main__":
     options = {
         "run" : main,
-        "version" : "0.0.1"
+        "version" : VERSION
     }
     fire.Fire(options)

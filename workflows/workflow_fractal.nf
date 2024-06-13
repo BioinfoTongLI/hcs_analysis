@@ -1,6 +1,6 @@
 #!/usr/bin/env/ nextflow
 
-process reformat_to_fractal {
+process OMENGFF_TO_FRACTAL {
     cache true
 
     container 'fractal_core_tasks:2.0'
@@ -18,7 +18,7 @@ process reformat_to_fractal {
     original_fractal_cfg = "${meta.id}_original_fractal.json"
     downsteam_stem = ""
     """
-    format_2_fractal.py run \
+    ngff_2_fractal.py run \
         ${zarr} \
         -output_config ${original_fractal_cfg} \
         -stem ${meta.id} \
@@ -26,7 +26,7 @@ process reformat_to_fractal {
     """
 }
 
-process Remove_t_dimension {
+process DROP_T_DIMENSION {
     cache true
     debug true
 
@@ -36,25 +36,19 @@ process Remove_t_dimension {
     cpus 1
 
     input:
-    tuple val(meta), path(argsjson), path(zarr)
+    tuple val(meta), path(argsjson), val(row), val(col), val(fov), path(zarr)
 
     output:
-    tuple val(meta), path("${stem}.json"), emit: fractal_config
-    tuple val(meta), path(origianl_cfg), emit: original_fractal_config
+    tuple val(meta), path(out_cfg), val(row), val(col), val(fov), emit: fractal_config
 
     script:
     def args = task.ext.args ?: ''
-    suffix = "_t_dropped"
-    stem = file(argsjson).baseName + suffix
-    origianl_cfg = "${meta.id}_original_${suffix}.json"
+    out_cfg = "${meta.id}_${row}_${col}_${fov}_t_dropped.json"
     """
     drop_t_dim_ome_zarr.py run \
-        -zarr_url ${zarr} \
         -argsjson ${argsjson} \
+        -output_config ${out_cfg} \
         -overwrite False \
-        -output_config ${origianl_cfg} \
-        -json_stem ${stem} \
-        -suffix ${suffix} \
         ${args}
     """
 }
@@ -64,42 +58,74 @@ process FRACTAL_CELLPOSE {
     cache true
     debug true
 
+    maxForks 5
+
     container 'fractal_core_tasks:2.0'
+    containerOptions "${workflow.containerEngine == 'singularity' ? '--nv':'--gpus all'}"
     storeDir params.out_dir + "/cellpose_segmentation"
 
     input:
-    tuple val(meta), path(argsjson), path(zarr)
+    tuple val(meta), path(argsjson), val(row), val(col), val(fov), path(zarr)
 
     output:
-    tuple val(meta), path("${stem}*.json"), emit: fractal_config
+    tuple val(meta), path(out_cfg), val(row), val(col), val(fov), emit: fractal_config
 
     script:
     def args = task.ext.args ?: ''
-    stem = "${meta.id}_t_dropped"
-    for_downsteam_cfg = "${meta.id}_for_downstream_img_list.json"
+    out_cfg = "${meta.id}_${row}_${col}_${fov}_cellpose_seg.json"
     """
     cellpose_ome_zarr.py run \
-        -zarr_url ${zarr} \
         -argsjson ${argsjson} \
+        -output_config ${out_cfg} \
         -overwrite True \
-        -output_config ${stem}_original.json \
-        -stem ${stem} \
         ${args}
     """
 }
 
+
+process FRACTAL_SCMULTIPLEX {
+    cache true
+    debug true
+
+    container 'fractal_core_tasks:2.0'
+    containerOptions "${workflow.containerEngine == 'singularity' ? '--nv':'--gpus all'}"
+    storeDir params.out_dir + "/feature_measurement"
+
+    input:
+    tuple val(meta), path(argsjson), val(row), val(col), val(fov), path(zarr)
+
+    output:
+    tuple val(meta), path(out_cfg), val(row), val(col), val(fov), emit: original_fractal_config
+
+    script:
+    def args = task.ext.args ?: ''
+    out_cfg = "${meta.id}_${row}_${col}_${fov}_scMultipleX_meas.json"
+    """
+    fractal_scmultiplex_wrapper.py run \
+        -argsjson ${argsjson} \
+        -out_table_name scMultipleX_meas \
+        -output_config ${out_cfg} \
+        -overwrite True \
+        ${args}
+    """
+}
 
 workflow Fractal_run {
     take:
     zarrs
 
     main:
-    reformat_to_fractal(zarrs)
-    to_remove_t = reformat_to_fractal.out.for_downsteam_fractal_config
-        .flatMap{ meta, list -> list.collect{ [meta, it] } }
+    OMENGFF_TO_FRACTAL(zarrs)
+    to_remove_t = OMENGFF_TO_FRACTAL.out.for_downsteam_fractal_config
+        .flatMap{ meta, list -> list.collect{
+            values = it.baseName.split("-")
+            row = values[1]
+            col = values[2]
+            fov = values[3]
+            [meta, it, row, col, fov] }
+        }
         .combine(zarrs, by:0)
-    Remove_t_dimension(to_remove_t.first()) 
-    FRACTAL_CELLPOSE(
-        Remove_t_dimension.out.fractal_config.combine(zarrs, by: 0)
-    )
+    DROP_T_DIMENSION(to_remove_t) 
+    FRACTAL_CELLPOSE(DROP_T_DIMENSION.out.fractal_config.combine(zarrs, by: 0))
+    FRACTAL_SCMULTIPLEX(FRACTAL_CELLPOSE.out.fractal_config.combine(zarrs, by: 0))
 }
