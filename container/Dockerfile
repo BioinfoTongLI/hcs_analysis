@@ -18,11 +18,17 @@ RUN cd /opt && \
     git checkout dev && \
     pip install .
 
-# Downgrade to 0.4.23
+# Downgrade to 0.4.23 for BaSiCPy-GPU compatibility
 RUN pip install --upgrade jax==0.4.23 "jax[cuda11_pip]==0.4.23" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 RUN pip install git+https://github.com/jluethi/fractal-helper-tasks.git
-# RUN python -c "from cellpose import models, core; models.Cellpose(gpu=core.use_gpu(), model_type='cyto2')"
+
+RUN pip install cellpose==2.3.2
+
+RUN cd /opt && \
+    git clone https://github.com/fmi-basel/gliberal-scMultipleX.git && \
+    cd gliberal-scMultipleX && \
+    pip install ".[fractal-tasks]"
 
 # RUN chmod -R 777 /opt
 # Create user analysis
