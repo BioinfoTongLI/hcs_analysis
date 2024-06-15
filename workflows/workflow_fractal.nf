@@ -34,6 +34,7 @@ process DROP_T_DIMENSION {
     storeDir params.out_dir + "/t_dropped"
 
     cpus 1
+    memory 2.GB
 
     input:
     tuple val(meta), path(argsjson), val(row), val(col), val(fov), path(zarr)
@@ -58,7 +59,7 @@ process FRACTAL_CELLPOSE {
     cache true
     debug true
 
-    maxForks 5
+    maxForks 20
 
     container 'fractal_core_tasks:2.0'
     containerOptions "${workflow.containerEngine == 'singularity' ? '--nv':'--gpus all'}"
