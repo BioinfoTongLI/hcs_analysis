@@ -1,9 +1,17 @@
 #!/usr/bin/env/ nextflow
 
+docker_img = "bioinfotongli/hcs_fractal"
+singularity_img = "/lustre/scratch126/cellgen/team283/imaging_sifs/cache/bioinfotongli-hcs_analysis-fractal.img"
+params.cellpose_model_dir = "/lustre/scratch126/cellgen/team283/NXF_WORK/models/"
+params.trial = false
+
+
 process OMENGFF_TO_FRACTAL {
     cache true
 
-    container 'fractal_core_tasks:2.0'
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        "${singularity_img}":
+        "${docker_img}"}"
     storeDir params.out_dir + "/reforamtted"
 
     input:
@@ -30,11 +38,10 @@ process DROP_T_DIMENSION {
     cache true
     debug true
 
-    container 'fractal_core_tasks:2.0'
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        "${singularity_img}":
+        "${docker_img}"}"
     storeDir params.out_dir + "/t_dropped"
-
-    cpus 1
-    memory 2.GB
 
     input:
     tuple val(meta), path(argsjson), val(row), val(col), val(fov), path(zarr)
@@ -59,10 +66,12 @@ process FRACTAL_CELLPOSE {
     cache true
     debug true
 
-    maxForks 20
-
-    container 'fractal_core_tasks:2.0'
-    containerOptions "${workflow.containerEngine == 'singularity' ? '--nv':'--gpus all'}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        "${singularity_img}":
+        "${docker_img}"}"
+    containerOptions "${workflow.containerEngine == 'singularity' ?
+        "--nv -B ${params.cellpose_model_dir}:/models/":
+        "--gpus all -v ${params.cellpose_model_dir}:/models/"}"
     storeDir params.out_dir + "/cellpose_segmentation"
 
     input:
@@ -75,6 +84,8 @@ process FRACTAL_CELLPOSE {
     def args = task.ext.args ?: ''
     out_cfg = "${meta.id}_${row}_${col}_${fov}_cellpose_seg.json"
     """
+    export NUMBA_CACHE_DIR=/tmp/Tong
+    export CELLPOSE_LOCAL_MODELS_PATH=/models/
     cellpose_ome_zarr.py run \
         -argsjson ${argsjson} \
         -output_config ${out_cfg} \
@@ -88,7 +99,9 @@ process FRACTAL_SCMULTIPLEX {
     cache true
     debug true
 
-    container 'fractal_core_tasks:2.0'
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        "${singularity_img}":
+        "${docker_img}"}"
     containerOptions "${workflow.containerEngine == 'singularity' ? '--nv':'--gpus all'}"
     storeDir params.out_dir + "/feature_measurement"
 
@@ -126,7 +139,12 @@ workflow Fractal_run {
             [meta, it, row, col, fov] }
         }
         .combine(zarrs, by:0)
-    DROP_T_DIMENSION(to_remove_t) 
+    if (params.trial) {
+        wells = to_remove_t.first()
+    } else {
+        wells = to_remove_t
+    }
+    DROP_T_DIMENSION(wells) 
     FRACTAL_CELLPOSE(DROP_T_DIMENSION.out.fractal_config.combine(zarrs, by: 0))
     FRACTAL_SCMULTIPLEX(FRACTAL_CELLPOSE.out.fractal_config.combine(zarrs, by: 0))
 }
