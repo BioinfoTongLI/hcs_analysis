@@ -1,7 +1,7 @@
 FROM rapidsai/miniforge-cuda:cuda11.8.0-base-ubuntu22.04-py3.9
 
 # Install update apt and install wget package
-RUN apt-get update && \
+RUN apt-get update && apt-get clean && \
     apt-get install -y libtiff5 git
 
 # Update base conda env with conda-env yaml file
@@ -30,7 +30,10 @@ RUN cd /opt && \
     cd gliberal-scMultipleX && \
     pip install ".[fractal-tasks]"
 
-# RUN chmod -R 777 /opt
+RUN chmod -R 777 /opt
+
+ENV NUMBA_CACHE_DIR=/tmp
+
 # Create user analysis
 # RUN useradd -m hcs_analysis
 
