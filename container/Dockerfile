@@ -1,7 +1,7 @@
 FROM rapidsai/miniforge-cuda:cuda11.8.0-base-ubuntu22.04-py3.9
 
 # Install update apt and install wget package
-RUN apt-get update && \
+RUN apt-get update && apt-get clean && \
     apt-get install -y libtiff5 git
 
 # Update base conda env with conda-env yaml file
@@ -18,12 +18,22 @@ RUN cd /opt && \
     git checkout dev && \
     pip install .
 
-# Downgrade to 0.4.23
+# Downgrade to 0.4.23 for BaSiCPy-GPU compatibility
 RUN pip install --upgrade jax==0.4.23 "jax[cuda11_pip]==0.4.23" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
-RUN python -c "from cellpose import models, core; models.Cellpose(gpu=core.use_gpu(), model_type='cyto2')"
+RUN pip install git+https://github.com/jluethi/fractal-helper-tasks.git
 
-# RUN chmod -R 777 /opt
+RUN pip install cellpose==2.3.2
+
+RUN cd /opt && \
+    git clone https://github.com/fmi-basel/gliberal-scMultipleX.git && \
+    cd gliberal-scMultipleX && \
+    pip install ".[fractal-tasks]"
+
+RUN chmod -R 777 /opt
+
+ENV NUMBA_CACHE_DIR=/tmp
+
 # Create user analysis
 # RUN useradd -m hcs_analysis
 
