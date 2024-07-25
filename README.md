@@ -19,3 +19,4 @@ zarrs:
     - ["id":sample_ID, [path-to-zarr]]
 out_dir: "./output"
 ```
+PS: [path-to-zarr] should be the output folder of [bioformats2raw](https://github.com/glencoesoftware/bioformats2raw)
