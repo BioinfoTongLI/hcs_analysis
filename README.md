@@ -5,6 +5,7 @@ RUNNING THE PIPELINE ON SANGER LSF
 2. load nextflow module
 ```bash
 module load cellgen/nextflow/24.04.3
+module load cellgen/singularity
 ```
 
 3. Run the pipeline
